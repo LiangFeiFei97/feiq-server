@@ -156,10 +156,10 @@ public class Server extends JFrame {
     }
 
     private class FileThread extends MyThread {
-        private boolean isBusy = false;
-        private final String[] tranList = new String[maxFileCount];
-        private int fileCount = 0;
-        private String ipSend = "";
+        private boolean isBusy;
+        private String[] tranList;
+        private int fileCount;
+        private String ipSend;
 
         private FileThread() {
             super();
@@ -167,6 +167,13 @@ public class Server extends JFrame {
 
         private FileThread(Socket socket) {
             super(socket);
+            this.isBusy = false;
+            this.tranList = new String[maxFileCount];
+            for (int i = 0; i < maxConnect; i++) {
+                this.tranList[i] = "";
+            }
+            this.fileCount = 0;
+            this.ipSend = "";
         }
 
         @Override
@@ -226,10 +233,10 @@ public class Server extends JFrame {
             }
             fileCount--;
             isBusy = false;
-            sendReady();
+            recReady();
         }
 
-        private void sendReady() {
+        private void recReady() {
             if (!isBusy) {
                 if (fileCount <= 0) {
                     return;
@@ -250,7 +257,7 @@ public class Server extends JFrame {
                 if (tranList[i].equals("")) {
                     tranList[i] = ip;
                     fileCount++;
-                    sendReady();
+                    recReady();
                     break;
                 }
             }
@@ -299,7 +306,7 @@ public class Server extends JFrame {
                         chatServer.notice(getIp());
                     } else if (head.equals("FileSend")) {//请求发送文件
                         chatServer.fileTrans(getIp(), body);
-                    } else if (head.equals("SendOVer")) {//文件发送完毕
+                    } else if (head.equals("SendOver")) {//文件发送完毕
                         Objects.requireNonNull(threadPool.getFileThread(body)).sendOver(getIp());
                     } else if (threadPool.getChatThread(head) != null) {//传输聊天消息
                         Objects.requireNonNull(threadPool.getChatThread(head)).msgSend(getIp() + strRec);
